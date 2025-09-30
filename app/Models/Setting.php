@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Gallery extends Model
+class Setting extends Model
 {
-    protected $fillable = ['path'];
+    protected $fillable = ['key', 'value'];
 }
