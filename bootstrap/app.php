@@ -8,10 +8,14 @@ use Inertia\Middleware as InertiaMiddleware;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php', // 👈 THIS LINE WAS MISSING
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->validateCsrfTokens(except: ['stripe/*']);
+        $middleware->trustProxies(at: '*');
+        
         // Web middleware stack
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
