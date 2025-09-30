@@ -2,6 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import api from '@/api/axios';
+import BlogManager from './Partials/BlogManager'; // 👈 IMPORT THE NEW COMPONENT
 
 export default function AdminDashboard({ auth }) {
   const [testimonials, setTestimonials] = useState([]);
@@ -69,7 +70,12 @@ export default function AdminDashboard({ auth }) {
       header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Admin Dashboard</h2>}
     >
       <Head title="Admin Dashboard" />
-
+      <div className="py-12">
+        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+          {/* 👇 REPLACE THE OLD CONTENT WITH THIS 👇 */}
+          <BlogManager />
+        </div>
+      </div>
       <div className="py-12">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
           {/* Form Section */}

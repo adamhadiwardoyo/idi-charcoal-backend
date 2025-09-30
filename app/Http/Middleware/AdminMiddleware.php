@@ -14,5 +14,12 @@ class AdminMiddleware
         }
 
         abort(403, 'Unauthorized');
+
+            // If it's an API request, return a JSON error. Otherwise, redirect.
+    if ($request->expectsJson()) {
+        return response()->json(['message' => 'Unauthorized.'], 403);
+    }
+
+    return redirect('/');
     }
 }
