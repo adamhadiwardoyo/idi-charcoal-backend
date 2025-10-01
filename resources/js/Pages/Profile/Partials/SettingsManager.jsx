@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import api from '@/api/axios';
 
+// Shadcn UI component imports
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+// Icon imports
+import { ExternalLink } from 'lucide-react';
+
 export default function SettingsManager() {
   const [settings, setSettings] = useState({
     company_profile_url: '',
@@ -9,13 +18,10 @@ export default function SettingsManager() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch the settings when the component loads.
-    // The Sanctum call is no longer needed here.
     const fetchSettings = async () => {
       setLoading(true);
       try {
         const response = await api.get('/api/settings');
-        // Ensure we have fallback values if the settings are empty
         setSettings({
           company_profile_url: response.data.company_profile_url || '',
           catalog_url: response.data.catalog_url || '',
@@ -49,61 +55,55 @@ export default function SettingsManager() {
   if (loading) return <p>Loading settings...</p>;
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4">Manage Document Links</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="company_profile_url" className="block font-medium text-gray-700">Company Profile URL</label>
-          <div className="flex items-center gap-2 mt-1">
-            <input
-              id="company_profile_url"
-              name="company_profile_url"
-              type="url"
-              value={settings.company_profile_url}
-              onChange={handleInputChange}
-              className="block w-full rounded-md border-gray-300 shadow-sm"
-              placeholder="https://..."
-              required
-            />
-            {/* --- PREVIEW BUTTON ADDED --- */}
-            <a
-              href={settings.company_profile_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-secondary whitespace-nowrap"
-            >
-              Preview
-            </a>
+    <Card>
+      <CardHeader>
+        <CardTitle>Manage Document Links</CardTitle>
+      </CardHeader>
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="company_profile_url">Company Profile URL</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="company_profile_url"
+                name="company_profile_url"
+                type="url"
+                value={settings.company_profile_url}
+                onChange={handleInputChange}
+                placeholder="https://..."
+                required
+              />
+              <Button variant="outline" size="icon" asChild>
+                <a href={settings.company_profile_url} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </Button>
+            </div>
           </div>
-        </div>
-        <div>
-          <label htmlFor="catalog_url" className="block font-medium text-gray-700">Catalog URL</label>
-          <div className="flex items-center gap-2 mt-1">
-            <input
-              id="catalog_url"
-              name="catalog_url"
-              type="url"
-              value={settings.catalog_url}
-              onChange={handleInputChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-              placeholder="https://..."
-              required
-            />
-            {/* --- PREVIEW BUTTON ADDED --- */}
-            <a
-              href={settings.catalog_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-secondary whitespace-nowrap"
-            >
-              Preview
-            </a>
+          <div className="space-y-2">
+            <Label htmlFor="catalog_url">Catalog URL</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="catalog_url"
+                name="catalog_url"
+                type="url"
+                value={settings.catalog_url}
+                onChange={handleInputChange}
+                placeholder="https://..."
+                required
+              />
+              <Button variant="outline" size="icon" asChild>
+                <a href={settings.catalog_url} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </Button>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-4 border-t pt-4">
-          <button type="submit" className="btn-primary">Save Settings</button>
-        </div>
+        </CardContent>
+        <CardFooter>
+          <Button type="submit">Save Settings</Button>
+        </CardFooter>
       </form>
-    </div>
+    </Card>
   );
 }

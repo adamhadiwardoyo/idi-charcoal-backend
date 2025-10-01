@@ -32,10 +32,11 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::delete('/testimonials/{testimonial}', [TestimonialController::class, 'destroy']);
     Route::patch('/testimonials/{testimonial}/toggle', [TestimonialController::class, 'toggleStatus']); // Route to toggle status
 
-    // Blog management routes
-    Route::post('/posts', [PostController::class, 'store']);
-    Route::put('/posts/{post}', [PostController::class, 'update']);
+    Route::get('/admin/posts', [PostController::class, 'adminIndex']); // Get all posts for admin
+    Route::post('/posts', [PostController::class, 'store']); // Use POST for create
+    Route::post('/posts/{post}', [PostController::class, 'update']); // Use POST for update with files
     Route::delete('/posts/{post}', [PostController::class, 'destroy']);
+    Route::patch('/posts/{post}/toggle', [PostController::class, 'toggleStatus']);
 
     // Gallery management routes
     Route::get('/gallery', [GalleryController::class, 'index']);
