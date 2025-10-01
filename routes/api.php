@@ -25,10 +25,12 @@ Route::get('/settings', [SettingController::class, 'index']); // Publicly fetch 
 // All routes in this group require the user to be a logged-in admin.
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     
-    // Testimonial management routes (Create, Update, Delete)
+    // Testimonial management routes
+    Route::get('/admin/testimonials', [TestimonialController::class, 'adminIndex']); // Get all for admin
     Route::post('/testimonials', [TestimonialController::class, 'store']);
     Route::put('/testimonials/{testimonial}', [TestimonialController::class, 'update']);
     Route::delete('/testimonials/{testimonial}', [TestimonialController::class, 'destroy']);
+    Route::patch('/testimonials/{testimonial}/toggle', [TestimonialController::class, 'toggleStatus']); // Route to toggle status
 
     // Blog management routes
     Route::post('/posts', [PostController::class, 'store']);

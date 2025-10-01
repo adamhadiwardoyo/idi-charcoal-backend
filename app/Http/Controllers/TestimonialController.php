@@ -8,11 +8,19 @@ use Illuminate\Http\Request;
 class TestimonialController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of ACTIVE testimonials for the public site.
      */
     public function index()
     {
-        return response()->json(Testimonial::all());
+        return Testimonial::where('is_active', true)->get();
+    }
+    
+    /**
+     * Display a listing of ALL testimonials for the admin panel.
+     */
+    public function adminIndex()
+    {
+        return Testimonial::all();
     }
 
     /**
@@ -20,15 +28,23 @@ class TestimonialController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'quote' => 'required|string',
             'author' => 'required|string|max:255',
             'location' => 'required|string|max:255',
+            'is_active' => 'sometimes|boolean',
         ]);
 
-        $testimonial = Testimonial::create($request->all());
-
+        $testimonial = Testimonial::create($validated);
         return response()->json($testimonial, 201);
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Testimonial $testimonial)
+    {
+        return $testimonial;
     }
 
     /**
@@ -36,14 +52,14 @@ class TestimonialController extends Controller
      */
     public function update(Request $request, Testimonial $testimonial)
     {
-        $request->validate([
+        $validated = $request->validate([
             'quote' => 'sometimes|required|string',
             'author' => 'sometimes|required|string|max:255',
             'location' => 'sometimes|required|string|max:255',
+            'is_active' => 'sometimes|boolean',
         ]);
 
-        $testimonial->update($request->all());
-
+        $testimonial->update($validated);
         return response()->json($testimonial);
     }
 
@@ -53,7 +69,16 @@ class TestimonialController extends Controller
     public function destroy(Testimonial $testimonial)
     {
         $testimonial->delete();
-
         return response()->json(null, 204);
+    }
+    
+    /**
+     * Toggle the active status of a testimonial.
+     */
+    public function toggleStatus(Testimonial $testimonial)
+    {
+        $testimonial->is_active = !$testimonial->is_active;
+        $testimonial->save();
+        return response()->json($testimonial);
     }
 }
