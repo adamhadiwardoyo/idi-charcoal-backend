@@ -110,29 +110,43 @@ export default function GalleryManager() {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {images.map(image => (
               <Dialog key={image.id}>
-                <div className="relative group border rounded-lg overflow-hidden">
-                  <DialogTrigger asChild>
-                    <img src={image.url} alt={`Galeri ${image.id}`} className="w-full h-32 object-cover cursor-pointer" />
-                  </DialogTrigger>
-                  <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => handleDeleteClick(image)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                <DialogTrigger asChild>
+                  <div className="relative group border rounded-lg overflow-hidden cursor-pointer">
+                    <img
+                      src={image.url}
+                      alt={`Galeri ${image.id}`}
+                      className="w-full h-32 object-cover"
+                    />
+                    {/* Tombol delete overlay */}
+                    <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation(); // ⬅ cegah buka dialog saat klik delete
+                          handleDeleteClick(image);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                </DialogTrigger>
+
                 <DialogContent className="sm:max-w-3xl">
                   <DialogHeader>
                     <DialogTitle>Pratinjau Gambar</DialogTitle>
                   </DialogHeader>
                   <div className="flex justify-center p-4">
-                    <img src={image.url} alt={`Pratinjau Galeri ${image.id}`} className="max-w-full max-h-[80vh] object-contain" />
+                    <img
+                      src={image.url}
+                      alt={`Pratinjau Galeri ${image.id}`}
+                      className="max-w-full max-h-[80vh] object-contain"
+                    />
                   </div>
                 </DialogContent>
               </Dialog>
+
             ))}
           </div>
         )}

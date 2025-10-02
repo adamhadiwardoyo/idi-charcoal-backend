@@ -1,11 +1,12 @@
 import '../css/app.css';
 import './bootstrap';
-
+// 👇 Pastikan baris ini ada
+import 'quill/dist/quill.snow.css';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 
-const appName = 'Indocharcoalsupply Admin Dashboard';
+const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
@@ -20,6 +21,6 @@ createInertiaApp({
         root.render(<App {...props} />);
     },
     progress: {
-        color: '#ff8800ff',
+        color: '#4B5563',
     },
 });

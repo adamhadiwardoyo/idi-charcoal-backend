@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 class Post extends Model
@@ -12,10 +11,13 @@ class Post extends Model
     use HasFactory;
 
     protected $fillable = [
-        'slug',
-        'title', 'excerpt', 'image', 'date', 'category',
-        'meta_title', 'meta_description', 'is_active'
+        'title', 'slug', 'excerpt', 'content', 'image', 'date', 'category',
+        'meta_title', 'meta_description', 'is_active',
+        'language', // <-- Tambahkan ini
     ];
+
+    // ... sisa kode model ...
+
 
     protected $casts = [
         'date' => 'date',

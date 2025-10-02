@@ -30,6 +30,7 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -62,7 +63,45 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* ... (kode css Anda yang sudah ada) ... */
+
+/* Tambahkan style untuk konten pratinjau blog */
+.prose h1,
+.prose h2,
+.prose h3 {
+  @apply font-bold mb-4 mt-6;
+}
+
+.prose h1 {
+  @apply text-4xl;
+}
+
+.prose h2 {
+  @apply text-2xl;
+}
+
+.prose h3 {
+  @apply text-xl;
+}
+
+.prose p {
+  @apply mb-4 leading-relaxed;
+}
+
+.prose ul {
+  @apply list-disc pl-5 mb-4;
+}
+
+.prose ol {
+  @apply list-decimal pl-5 mb-4;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-gray-300 pl-4 italic text-gray-500 my-4;
 }

@@ -8,38 +8,34 @@ use Illuminate\Support\Facades\Storage;
 
 class GalleryController extends Controller
 {
-    // List all gallery images
     public function index()
     {
-        return Gallery::all();
+        return Gallery::latest()->get();
     }
 
-    // Upload and store a new image
     public function store(Request $request)
     {
         $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
-        // Store the file in 'public/gallery' and get its path
-        $path = $request->file('image')->store('gallery', 'public');
+        $path = $request->file('image')->store('gallery-images', 'public');
 
-        // Create a record in the database
-        $image = Gallery::create([
+        // --- PERBAIKAN DI SINI ---
+        // Simpan data ke kolom 'path', bukan 'url'
+        $gallery = Gallery::create([
             'path' => $path,
-            'url' => Storage::disk('public')->url($path),
         ]);
 
-        return response()->json($image, 201);
+        return response()->json($gallery, 201);
     }
 
-    // Delete an image
     public function destroy(Gallery $gallery)
     {
-        // Delete the file from storage
-        Storage::disk('public')->delete($gallery->path);
+        if ($gallery->path) {
+            Storage::disk('public')->delete($gallery->path);
+        }
 
-        // Delete the record from the database
         $gallery->delete();
 
         return response()->json(null, 204);
