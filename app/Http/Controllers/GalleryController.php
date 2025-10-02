@@ -25,7 +25,10 @@ class GalleryController extends Controller
         $path = $request->file('image')->store('gallery', 'public');
 
         // Create a record in the database
-        $image = Gallery::create(['path' => $path]);
+        $image = Gallery::create([
+            'path' => $path,
+            'url' => Storage::disk('public')->url($path),
+        ]);
 
         return response()->json($image, 201);
     }

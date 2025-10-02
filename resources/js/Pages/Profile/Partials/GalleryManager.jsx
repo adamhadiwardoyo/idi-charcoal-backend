@@ -84,7 +84,7 @@ export default function GalleryManager() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {images.map(image => (
             <div key={image.id} className="relative group border rounded-lg overflow-hidden">
-              <img src={`/storage/${image.path}`} alt="" className="w-full h-32 object-cover" />
+              <img src={image.url} alt="" className="w-full h-32 object-cover" />
               <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => handleDelete(image.id)}
