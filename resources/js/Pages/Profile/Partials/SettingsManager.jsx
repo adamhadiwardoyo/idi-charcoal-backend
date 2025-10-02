@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '@/api/axios';
+import { toast } from 'sonner'; // Impor toast
 
 // Shadcn UI component imports
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 // Icon imports
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Loader2 } from 'lucide-react'; // Impor Loader2
 
 export default function SettingsManager() {
   const [settings, setSettings] = useState({
@@ -16,6 +17,7 @@ export default function SettingsManager() {
     catalog_url: '',
   });
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false); // State untuk proses penyimpanan
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -27,7 +29,8 @@ export default function SettingsManager() {
           catalog_url: response.data.catalog_url || '',
         });
       } catch (error) {
-        console.error("Failed to fetch settings:", error);
+        console.error("Gagal mengambil pengaturan:", error);
+        toast.error("Gagal mengambil pengaturan.");
       } finally {
         setLoading(false);
       }
@@ -43,26 +46,29 @@ export default function SettingsManager() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSaving(true); // Mulai proses penyimpanan
     try {
       await api.post('/api/settings', settings);
-      alert('Settings updated successfully!');
+      toast.success('Pengaturan berhasil diperbarui!');
     } catch (error) {
-      console.error('Failed to update settings:', error);
-      alert('Failed to update settings.');
+      console.error('Gagal memperbarui pengaturan:', error);
+      toast.error('Gagal memperbarui pengaturan.');
+    } finally {
+      setIsSaving(false); // Selesaikan proses penyimpanan
     }
   };
 
-  if (loading) return <p>Loading settings...</p>;
+  if (loading) return <p>Memuat pengaturan...</p>;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Manage Document Links</CardTitle>
+        <CardTitle>Link Download</CardTitle>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="company_profile_url">Company Profile URL</Label>
+            <Label htmlFor="company_profile_url">URL Profil Perusahaan</Label>
             <div className="flex items-center gap-2">
               <Input
                 id="company_profile_url"
@@ -74,14 +80,14 @@ export default function SettingsManager() {
                 required
               />
               <Button variant="outline" size="icon" asChild>
-                <a href={settings.company_profile_url} target="_blank" rel="noopener noreferrer">
+                <a href={settings.company_profile_url || '#'} target="_blank" rel="noopener noreferrer" aria-disabled={!settings.company_profile_url}>
                   <ExternalLink className="h-4 w-4" />
                 </a>
               </Button>
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="catalog_url">Catalog URL</Label>
+            <Label htmlFor="catalog_url">URL Katalog</Label>
             <div className="flex items-center gap-2">
               <Input
                 id="catalog_url"
@@ -93,7 +99,7 @@ export default function SettingsManager() {
                 required
               />
               <Button variant="outline" size="icon" asChild>
-                <a href={settings.catalog_url} target="_blank" rel="noopener noreferrer">
+                <a href={settings.catalog_url || '#'} target="_blank" rel="noopener noreferrer" aria-disabled={!settings.catalog_url}>
                   <ExternalLink className="h-4 w-4" />
                 </a>
               </Button>
@@ -101,7 +107,10 @@ export default function SettingsManager() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit">Save Settings</Button>
+          <Button type="submit" disabled={isSaving}>
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Simpan Pengaturan
+          </Button>
         </CardFooter>
       </form>
     </Card>

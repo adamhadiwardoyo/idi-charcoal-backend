@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '@/api/axios';
 import { toast } from 'sonner';
 
@@ -15,7 +15,7 @@ import { Edit, Trash2, PlusCircle, XCircle, Loader2 } from 'lucide-react';
 
 const emptyForm = {
   id: null, title: '', slug: '', excerpt: '', image: '', date: new Date().toISOString().split('T')[0],
-  category: 'Market Analysis', meta_title: '', meta_description: '', is_active: false, // Default to inactive for safety
+  category: 'Market Analysis', meta_title: '', meta_description: '', is_active: false,
   contents: [{ type: 'p', text: '' }]
 };
 
@@ -33,7 +33,8 @@ export default function BlogManager() {
   const [showActivateDialog, setShowActivateDialog] = useState(false);
   const [postToActivate, setPostToActivate] = useState(null);
 
-  // Initial data fetch
+  const imageInputRef = useRef(null);
+
   useEffect(() => {
     const initializeAndFetch = async () => {
       await api.get('/sanctum/csrf-cookie');
@@ -54,11 +55,10 @@ export default function BlogManager() {
     }
   };
 
-  // --- MANUAL SAVE LOGIC ---
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.title) {
-      toast.error("A title is required before saving.");
+      toast.error("Judul wajib diisi sebelum menyimpan.");
       return;
     }
     setIsSaving(true);
@@ -78,10 +78,11 @@ export default function BlogManager() {
       if (!form.id) {
         setForm(prev => ({ ...prev, id: response.data.id }));
       }
-      toast.success("Post saved successfully!");
+      toast.success("Postingan berhasil disimpan!");
       fetchPosts();
+      resetForm();
     } catch (error) {
-      toast.error("Failed to save post.");
+      toast.error("Gagal menyimpan postingan.");
       console.error('Failed to save post:', error.response?.data);
     } finally {
       setIsSaving(false);
@@ -102,6 +103,14 @@ export default function BlogManager() {
     if (file) {
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview('');
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
     }
   };
 
@@ -143,11 +152,11 @@ export default function BlogManager() {
     if (!postToDelete) return;
     try {
       await api.delete(`/api/posts/${postToDelete.id}`);
-      toast.success("Post deleted successfully.");
+      toast.success("Postingan berhasil dihapus.");
       fetchPosts();
       if (form.id === postToDelete.id) resetForm();
     } catch (error) {
-      toast.error("Failed to delete post.");
+      toast.error("Gagal menghapus postingan.");
     } finally {
       setShowDeleteDialog(false);
       setPostToDelete(null);
@@ -158,6 +167,9 @@ export default function BlogManager() {
     setForm(emptyForm);
     setImageFile(null);
     setImagePreview('');
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
+    }
   };
 
   const handleToggleStatus = (post) => {
@@ -179,10 +191,10 @@ export default function BlogManager() {
   const togglePostStatus = async (id) => {
     try {
       await api.patch(`/api/posts/${id}/toggle`);
-      toast.success("Post status updated!");
+      toast.success("Status postingan berhasil diperbarui!");
       fetchPosts();
     } catch (error) {
-      toast.error("Failed to update status.");
+      toast.error("Gagal memperbarui status.");
     }
   };
 
@@ -190,80 +202,143 @@ export default function BlogManager() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>{form.id ? 'Edit Blog Post' : 'Create New Blog Post'}</CardTitle>
+          <CardTitle>{form.id ? 'Ubah Postingan Blog' : 'Buat Postingan Blog Baru'}</CardTitle>
         </CardHeader>
         <form onSubmit={handleSave}>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2 space-y-4">
-                <div className="space-y-2"><Label htmlFor="title">Title</Label><Input id="title" name="title" value={form.title} onChange={handleFormChange} required /></div>
-                <div className="space-y-2"><Label htmlFor="slug">URL Slug</Label><Input id="slug" name="slug" value={form.slug} onChange={handleFormChange} required /></div>
+                <div className="space-y-2"><Label htmlFor="title">Judul Artikel</Label><Input id="title" name="title" value={form.title} onChange={handleFormChange} required /></div>
+                <div className="space-y-2">
+                  <Label htmlFor="slug">Slug URL</Label>
+                  <Input
+                    id="slug"
+                    name="slug"
+                    value={form.slug}
+                    onChange={handleFormChange}
+                    required
+                    placeholder="contoh-slug-artikel"
+                  />
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    Slug adalah bagian akhir dari URL yang digunakan untuk mempermudah orang
+                    menemukan halaman ini. Biasanya berupa huruf kecil dengan tanda hubung (-).
+                    <br />
+                    <span className="font-medium">Contoh:</span> Jika judul artikel <em>“Cara Membuat Nasi Goreng Enak”</em>,
+                    maka slug yang benar adalah
+                    <span className="font-mono text-blue-600"> cara-membuat-nasi-goreng-enak </span>.
+                    <br />
+                    URL akan terlihat seperti:
+                    <span className="font-mono">https://contoh.com/artikel/cara-membuat-nasi-goreng-enak</span>
+                  </p>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label htmlFor="category">Category</Label><Input id="category" name="category" value={form.category} onChange={handleFormChange} required /></div>
-                  <div className="space-y-2"><Label htmlFor="date">Date</Label><Input id="date" type="date" name="date" value={form.date} onChange={handleFormChange} required /></div>
+                  <div className="space-y-2"><Label htmlFor="category">Kategori</Label><Input id="category" name="category" value={form.category} onChange={handleFormChange} required /></div>
+                  <div className="space-y-2"><Label htmlFor="date">Tanggal</Label><Input id="date" type="date" name="date" value={form.date} onChange={handleFormChange} required /></div>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Featured Image</Label>
+                <Label>Gambar Artikel</Label>
                 <div className="mt-1 border-2 border-dashed border-gray-300 rounded-md p-2 text-center">
-                  {imagePreview ? <img src={imagePreview} alt="Preview" className="w-full h-32 object-cover rounded-md" /> : <div className="flex items-center justify-center h-32 text-gray-400">No Image</div>}
-                  <Input id="imageFile" type="file" onChange={handleImageChange} className="mt-2" />
+                  {imagePreview ? <img src={imagePreview} alt="Preview" className="w-full h-32 object-cover rounded-md" /> : <div className="flex items-center justify-center h-32 text-gray-400">Tidak Ada Gambar</div>}
+                  <Input id="imageFile" type="file" onChange={handleImageChange} className="mt-2" ref={imageInputRef} />
+                  {imagePreview && (
+                    <Button variant="link" size="sm" className="text-red-500" type="button" onClick={handleRemoveImage}>
+                      Hapus Gambar
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
-            <div className="space-y-2"><Label htmlFor="excerpt">Excerpt</Label><Textarea id="excerpt" name="excerpt" value={form.excerpt} onChange={handleFormChange} rows="3" required /></div>
+            <div className="space-y-2"><Label htmlFor="excerpt">Kutipan</Label><Textarea id="excerpt" name="excerpt" value={form.excerpt} onChange={handleFormChange} rows="3" required /></div>
             <div className="space-y-4 pt-4 border-t">
-              <h3 className="text-lg font-medium">SEO Meta</h3>
-              <div className="space-y-2"><Label htmlFor="meta_title">Meta Title</Label><Input id="meta_title" name="meta_title" value={form.meta_title} onChange={handleFormChange} required /></div>
-              <div className="space-y-2"><Label htmlFor="meta_description">Meta Description</Label><Textarea id="meta_description" name="meta_description" value={form.meta_description} onChange={handleFormChange} rows="2" required /></div>
+              <h3 className="text-lg font-medium">Meta SEO</h3>
+
+              {/* Meta Title */}
+              <div className="space-y-2">
+                <Label htmlFor="meta_title">Judul Meta</Label>
+                <Input
+                  id="meta_title"
+                  name="meta_title"
+                  value={form.meta_title}
+                  onChange={handleFormChange}
+                  required
+                  placeholder="Contoh: Cara Membuat Nasi Goreng Enak"
+                />
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  Judul meta adalah teks yang muncul di hasil pencarian Google sebagai
+                  judul halaman Anda. Gunakan kalimat singkat dan jelas (50–60 karakter).
+                  <br />
+                  <span className="font-medium">Contoh:</span>
+                  <span className="font-mono"> Cara Membuat Nasi Goreng Enak </span>
+                </p>
+              </div>
+
+              {/* Meta Description */}
+              <div className="space-y-2">
+                <Label htmlFor="meta_description">Deskripsi Meta</Label>
+                <Textarea
+                  id="meta_description"
+                  name="meta_description"
+                  value={form.meta_description}
+                  onChange={handleFormChange}
+                  rows="2"
+                  required
+                  placeholder="Contoh: Panduan lengkap memasak nasi goreng enak dan sederhana di rumah."
+                />
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  Deskripsi meta adalah ringkasan singkat yang ditampilkan di hasil
+                  pencarian Google di bawah judul. Gunakan 120–160 karakter.
+                  <br />
+                  <span className="font-medium">Contoh:</span>
+                  <span className="font-mono"> Panduan lengkap memasak nasi goreng enak dan sederhana di rumah. </span>
+                </p>
+              </div>
             </div>
+
             <div className="space-y-4 pt-4 border-t">
-              <h3 className="text-lg font-medium">Post Content</h3>
+              <h3 className="text-lg font-medium">Konten Postingan</h3>
               {form.contents && form.contents.map((block, index) => (
                 <Card key={index} className="relative">
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2" type="button" onClick={() => removeContentBlock(index)}><XCircle className="h-4 w-4 text-destructive" /></Button>
                   <CardHeader><CardTitle className="text-base">{block.type.toUpperCase()}</CardTitle></CardHeader>
                   <CardContent>
-                    {block.type === 'ul' ? <Textarea value={Array.isArray(block.items) ? block.items.join('\n') : ''} onChange={e => handleContentChange(index, 'items', e.target.value)} placeholder="One item per line..." rows="4" /> : <Textarea value={block.text || ''} onChange={e => handleContentChange(index, 'text', e.target.value)} placeholder="Enter content..." rows={block.type === 'p' ? 5 : 2} />}
+                    {block.type === 'ul' ? <Textarea value={Array.isArray(block.items) ? block.items.join('\n') : ''} onChange={e => handleContentChange(index, 'items', e.target.value)} placeholder="Satu item per baris..." rows="4" /> : <Textarea value={block.text || ''} onChange={e => handleContentChange(index, 'text', e.target.value)} placeholder="Masukkan konten..." rows={block.type === 'p' ? 5 : 2} />}
                   </CardContent>
                 </Card>
               ))}
               <div className="flex gap-2 flex-wrap">
                 <Button variant="outline" size="sm" type="button" onClick={() => addContentBlock('h2')}><PlusCircle className="h-4 w-4 mr-2" />H2</Button>
                 <Button variant="outline" size="sm" type="button" onClick={() => addContentBlock('h3')}><PlusCircle className="h-4 w-4 mr-2" />H3</Button>
-                <Button variant="outline" size="sm" type="button" onClick={() => addContentBlock('p')}><PlusCircle className="h-4 w-4 mr-2" />Paragraph</Button>
-                <Button variant="outline" size="sm" type="button" onClick={() => addContentBlock('ul')}><PlusCircle className="h-4 w-4 mr-2" />List</Button>
-                <Button variant="outline" size="sm" type="button" onClick={() => addContentBlock('blockquote')}><PlusCircle className="h-4 w-4 mr-2" />Quote</Button>
+                <Button variant="outline" size="sm" type="button" onClick={() => addContentBlock('p')}><PlusCircle className="h-4 w-4 mr-2" />Paragraf</Button>
+                <Button variant="outline" size="sm" type="button" onClick={() => addContentBlock('ul')}><PlusCircle className="h-4 w-4 mr-2" />Daftar</Button>
+                <Button variant="outline" size="sm" type="button" onClick={() => addContentBlock('blockquote')}><PlusCircle className="h-4 w-4 mr-2" />Kutipan</Button>
               </div>
             </div>
-
-            {/* --- THIS IS THE FIX --- */}
             <div className="flex items-center space-x-2 pt-4 border-t">
               <Switch id="is_active" checked={form.is_active} onCheckedChange={handleSwitchChange} />
-              <Label htmlFor="is_active">Active (Visible on public site)</Label>
+              <Label htmlFor="is_active">Aktif (Tampil di situs publik)</Label>
             </div>
-
           </CardContent>
           <CardFooter className="flex justify-between">
             <div>
               <Button type="submit" disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {form.id ? 'Save Changes' : 'Create Post'}
+                {form.id ? 'Simpan Perubahan' : 'Buat Postingan'}
               </Button>
-              <Button variant="outline" type="button" onClick={resetForm} className="ml-2">New Post</Button>
+              <Button variant="outline" type="button" onClick={resetForm} className="ml-2">Postingan Baru</Button>
             </div>
           </CardFooter>
         </form>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Existing Posts</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Postingan yang Ada</CardTitle></CardHeader>
         <CardContent>
-          {loading ? <p>Loading...</p> : (
+          {loading ? <p>Memuat...</p> : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Status</TableHead><TableHead>Title</TableHead><TableHead>Category</TableHead><TableHead>Date</TableHead><TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Status</TableHead><TableHead>Judul</TableHead><TableHead>Kategori</TableHead><TableHead>Tanggal</TableHead><TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -288,20 +363,20 @@ export default function BlogManager() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>This action cannot be undone. This will permanently delete the post titled "{postToDelete?.title}".</AlertDialogDescription>
+            <AlertDialogTitle>Apakah Anda benar-benar yakin?</AlertDialogTitle>
+            <AlertDialogDescription>Tindakan ini tidak dapat dibatalkan. Ini akan menghapus postingan berjudul "{postToDelete?.title}" secara permanen.</AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleDeleteConfirm}>Continue</AlertDialogAction></AlertDialogFooter>
+          <AlertDialogFooter><AlertDialogCancel>Batal</AlertDialogCancel><AlertDialogAction onClick={handleDeleteConfirm}>Lanjutkan</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       <AlertDialog open={showActivateDialog} onOpenChange={setShowActivateDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to publish this post?</AlertDialogTitle>
-            <AlertDialogDescription>This will make the post titled "{postToActivate?.title}" visible on your public website.</AlertDialogDescription>
+            <AlertDialogTitle>Apakah Anda yakin ingin menerbitkan postingan ini?</AlertDialogTitle>
+            <AlertDialogDescription>Ini akan membuat postingan berjudul "{postToActivate?.title}" dapat dilihat di situs web publik Anda.</AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleActivateConfirm}>Publish</AlertDialogAction></AlertDialogFooter>
+          <AlertDialogFooter><AlertDialogCancel>Batal</AlertDialogCancel><AlertDialogAction onClick={handleActivateConfirm}>Terbitkan</AlertDialogAction></AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>

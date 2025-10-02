@@ -5,6 +5,7 @@ import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { Toaster } from "@/components/ui/sonner"
+
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
 
@@ -24,11 +25,6 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
 
                             <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink href={route('dashboard')} active={route().current('dashboard')}>
-                                    Dashboard
-                                </NavLink>
-
-                                {/* 👇 ADD THIS CODE 👇 */}
                                 {user.role === 'admin' && (
                                     <NavLink href={route('admin.dashboard')} active={route().current('admin.dashboard')}>
                                         Admin Dashboard
@@ -133,10 +129,10 @@ export default function AuthenticatedLayout({ header, children }) {
                 >
                     <div className="space-y-1 pb-3 pt-2">
                         <ResponsiveNavLink
-                            href={route('dashboard')}
-                            active={route().current('dashboard')}
+                            href={route('admin.dashboard')}
+                            active={route().current('admin.dashboard')}
                         >
-                            Dashboard
+                            Admin Dashboard
                         </ResponsiveNavLink>
                     </div>
 

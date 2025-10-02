@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '@/api/axios';
+import { toast } from 'sonner';
 
 // Shadcn UI component imports
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ import { Switch } from "@/components/ui/switch";
 // Icon imports
 import { Edit, Trash2, Eye } from 'lucide-react';
 
-// A simple card component for the preview
+// Komponen preview kartu testimonial
 const TestimonialCardPreview = ({ quote, author, location }) => (
   <div className="bg-gray-100 p-6 rounded-lg shadow-inner text-left">
     <p className="text-gray-600 mb-4">&ldquo;{quote}&rdquo;</p>
@@ -38,9 +39,14 @@ const TestimonialCardPreview = ({ quote, author, location }) => (
 export default function TestimonialManager() {
   const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ id: null, quote: '', author: '', location: '', is_active: true });
+  const [form, setForm] = useState({
+    id: null,
+    quote: '',
+    author: '',
+    location: '',
+    is_active: true
+  });
 
-  // State to manage the delete confirmation dialog
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [testimonialToDelete, setTestimonialToDelete] = useState(null);
 
@@ -52,7 +58,7 @@ export default function TestimonialManager() {
         const res = await api.get("/api/admin/testimonials");
         setTestimonials(res.data);
       } catch (error) {
-        console.error("Failed to fetch testimonials:", error);
+        console.error("Gagal mengambil data testimonial:", error);
       } finally {
         setLoading(false);
       }
@@ -65,7 +71,7 @@ export default function TestimonialManager() {
       const res = await api.get("/api/admin/testimonials");
       setTestimonials(res.data);
     } catch (error) {
-      console.error("Failed to fetch testimonials:", error);
+      console.error("Gagal mengambil data testimonial:", error);
     }
   };
 
@@ -73,8 +79,10 @@ export default function TestimonialManager() {
     try {
       await api.patch(`/api/testimonials/${id}/toggle`);
       fetchTestimonials();
+      toast.success("Status berhasil diubah!");
     } catch (error) {
-      console.error('Failed to toggle status:', error);
+      console.error('Gagal mengubah status:', error);
+      toast.error("Gagal mengubah status.");
     }
   };
 
@@ -86,43 +94,56 @@ export default function TestimonialManager() {
   const handleSwitchChange = (checked) => {
     setForm(prev => ({ ...prev, is_active: checked }));
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const method = form.id ? 'put' : 'post';
-    const url = form.id ? `/api/testimonials/${form.id}` : '/api/testimonials';
+    const isUpdating = !!form.id;
 
     try {
-      await api[method](url, form);
+      if (isUpdating) {
+        // Kirim semua data termasuk is_active
+        await api.patch(`/api/testimonials/${form.id}`, {
+          quote: form.quote,
+          author: form.author,
+          location: form.location,
+          is_active: form.is_active,
+        });
+      } else {
+        await api.post('/api/testimonials', form);
+      }
+
+      toast.success("Testimonial berhasil disimpan!");
       resetForm();
       fetchTestimonials();
+
     } catch (error) {
-      console.error('Failed to save testimonial:', error);
+      console.error('Gagal menyimpan testimonial:', error.response?.data);
+      toast.error("Gagal menyimpan testimonial.");
     }
   };
 
+
+
   const handleEdit = (testimonial) => {
-    setForm(testimonial);
+    // Pastikan data yang masuk ke form adalah salinan agar tidak mengubah state asli
+    setForm({ ...testimonial });
     window.scrollTo(0, 0);
   };
 
-  // --- NEW DELETE WORKFLOW ---
-  // 1. When the delete button is clicked, set the state to show the dialog
   const handleDeleteClick = (testimonial) => {
     setTestimonialToDelete(testimonial);
     setShowDeleteDialog(true);
   };
 
-  // 2. When the "Continue" button in the dialog is clicked, run the delete API call
   const handleDeleteConfirm = async () => {
     if (!testimonialToDelete) return;
     try {
       await api.delete(`/api/testimonials/${testimonialToDelete.id}`);
       fetchTestimonials();
+      toast.success("Testimonial berhasil dihapus.");
     } catch (error) {
-      console.error('Failed to delete testimonial:', error);
+      console.error('Gagal menghapus testimonial:', error);
+      toast.error("Gagal menghapus testimonial.");
     } finally {
-      // 3. Clean up and close the dialog
       setShowDeleteDialog(false);
       setTestimonialToDelete(null);
     }
@@ -136,49 +157,63 @@ export default function TestimonialManager() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>{form.id ? 'Edit Testimonial' : 'Add New Testimonial'}</CardTitle>
+          <CardTitle>{form.id ? 'Edit Testimonial' : 'Tambah Testimonial Baru'}</CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="author">Author</Label>
+                <Label htmlFor="author">Nama</Label>
                 <Input id="author" name="author" value={form.author} onChange={handleFormChange} placeholder="John Doe" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input id="location" name="location" value={form.location} onChange={handleFormChange} placeholder="New York, USA" required />
+                <Label htmlFor="location">Negara</Label>
+                <Input id="location" name="location" value={form.location} onChange={handleFormChange} placeholder="Indonesia" required />
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  Masukkan nama negara saja.
+                  <br />Contoh: <em>Indonesia, Malaysia, USA</em>
+                </p>
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="quote">Quote</Label>
-              <Textarea id="quote" name="quote" value={form.quote} onChange={handleFormChange} placeholder="Enter the testimonial quote here..." rows="4" required />
+              <Label htmlFor="quote">Isi Testimonial</Label>
+              <Textarea
+                id="quote"
+                name="quote"
+                value={form.quote}
+                onChange={handleFormChange}
+                placeholder="Tuliskan pengalaman atau komentar di sini..."
+                rows="4"
+                required
+              />
+              <p className="text-sm text-gray-500 leading-relaxed">
+                Tulis pengalaman tanpa tanda kutip (<span className="font-mono">""</span> atau <span className="font-mono">''</span>).
+                <br />Contoh benar: <em>Sangat puas dengan layanan ini, akan merekomendasikan ke teman.</em>
+              </p>
             </div>
-            <div className="flex items-center space-x-2">
-              <Switch id="is_active" checked={form.is_active} onCheckedChange={handleSwitchChange} />
-              <Label htmlFor="is_active">Active (Visible on public site)</Label>
-            </div>
+
           </CardContent>
           <CardFooter className="flex gap-2">
-            <Button type="submit">Save</Button>
-            <Button variant="outline" type="button" onClick={resetForm}>Cancel</Button>
+            <Button type="submit">Simpan</Button>
+            <Button variant="outline" type="button" onClick={resetForm}>Batal</Button>
           </CardFooter>
         </form>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Existing Testimonials</CardTitle>
+          <CardTitle>Daftar Testimonial</CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? <p>Loading...</p> : (
+          {loading ? <p>Mengambil data...</p> : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[100px]">Status</TableHead>
-                  <TableHead>Author</TableHead>
-                  <TableHead>Quote</TableHead>
-                  <TableHead className="text-right w-[150px]">Actions</TableHead>
+                  <TableHead>Nama</TableHead>
+                  <TableHead>Negara</TableHead>
+                  <TableHead>Isi</TableHead>
+                  <TableHead className="text-right w-[150px]">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -188,6 +223,7 @@ export default function TestimonialManager() {
                       <Switch checked={t.is_active} onCheckedChange={() => handleToggleStatus(t.id)} />
                     </TableCell>
                     <TableCell className="font-medium">{t.author}</TableCell>
+                    <TableCell>{t.location}</TableCell>
                     <TableCell className="whitespace-normal text-sm text-muted-foreground">
                       {t.quote}
                     </TableCell>
@@ -198,7 +234,7 @@ export default function TestimonialManager() {
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Testimonial Preview</DialogTitle>
+                            <DialogTitle>Pratinjau Testimonial</DialogTitle>
                           </DialogHeader>
                           <TestimonialCardPreview {...t} />
                         </DialogContent>
@@ -216,18 +252,17 @@ export default function TestimonialManager() {
         </CardContent>
       </Card>
 
-      {/* --- DELETE CONFIRMATION DIALOG --- */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>Yakin ingin menghapus?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the testimonial by "{testimonialToDelete?.author}".
+              Aksi ini tidak bisa dibatalkan. Testimonial dari "{testimonialToDelete?.author}" akan dihapus permanen.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>Continue</AlertDialogAction>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm}>Hapus</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
