@@ -10,20 +10,21 @@ use Illuminate\Validation\Rule; // <-- Impor Rule
 class PostController extends Controller
 {
     // Fungsi ini sekarang akan menerima parameter bahasa dari request
+        // ✅ Public index with optional language filter
     public function index(Request $request)
     {
-        // Validasi bahasa yang diizinkan
+        // Validate optional language
         $request->validate([
             'lang' => ['sometimes', 'string', Rule::in(['en', 'de', 'ar', 'nl', 'zh', 'fr', 'ja'])],
         ]);
 
-        // Ambil bahasa dari query string, default ke 'en' jika tidak ada
-        $language = $request->query('lang', 'en');
+        $query = Post::where('is_active', true);
 
-        return Post::where('is_active', true)
-                    ->where('language', $language)
-                    ->latest()
-                    ->get();
+        if ($request->has('lang')) {
+            $query->where('language', $request->query('lang'));
+        }
+
+        return $query->latest()->get();
     }
 
     public function adminIndex()
