@@ -1,41 +1,66 @@
+import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BlogManager from './Partials/BlogManager';
 import GalleryManager from './Partials/GalleryManager';
 import TestimonialManager from './Partials/TestimonialManager';
-import SettingsManager from './Partials/SettingsManager'; // 👈 Import
+import SettingsManager from './Partials/SettingsManager';
+import TopicManager from './Partials/Blog/TopicManager'; // Impor komponen baru
+import axios from '@/api/axios';
+import { toast } from "sonner";
 
 export default function AdminDashboard({ auth }) {
-  const [activeTab, setActiveTab] = useState('blog');
+  const [topics, setTopics] = useState([]);
 
-  const renderActiveTab = () => {
-    switch (activeTab) {
-      case 'blog': return <BlogManager />;
-      case 'gallery': return <GalleryManager />;
-      case 'testimonials': return <TestimonialManager />;
-      case 'settings': return <SettingsManager />; // 👈 Render
-      default: return null;
+  useEffect(() => {
+    fetchTopics();
+  }, []);
+
+  const fetchTopics = async () => {
+    try {
+      const response = await axios.get('/api/topics');
+      setTopics(response.data);
+    } catch (error) {
+      toast.error("Gagal mengambil data topik.");
     }
   };
 
   return (
     <AuthenticatedLayout
       user={auth.user}
-
+      header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Admin Dashboard</h2>}
     >
       <Head title="Admin Dashboard" />
+
       <div className="py-12">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-          <div className="mb-4 border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-              <button onClick={() => setActiveTab('blog')} className={`${activeTab === 'blog' ? 'border-indigo-500 text-indigo-600' : 'tab-inactive'}`}>Blog</button>
-              <button onClick={() => setActiveTab('gallery')} className={`${activeTab === 'gallery' ? 'border-indigo-500 text-indigo-600' : 'tab-inactive'}`}>Gallery</button>
-              <button onClick={() => setActiveTab('testimonials')} className={`${activeTab === 'testimonials' ? 'border-indigo-500 text-indigo-600' : 'tab-inactive'}`}>Testimonials</button>
-              <button onClick={() => setActiveTab('settings')} className={`${activeTab === 'settings' ? 'border-indigo-500 text-indigo-600' : 'tab-inactive'}`}>Settings</button> {/* 👈 Add button */}
-            </nav>
-          </div>
-          <div>{renderActiveTab()}</div>
+          <Tabs defaultValue="blog">
+            <TabsList>
+              <TabsTrigger value="blog">Blog</TabsTrigger>
+              <TabsTrigger value="topics">Topics</TabsTrigger> {/* Trigger Baru */}
+              <TabsTrigger value="gallery">Gallery</TabsTrigger>
+              <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
+              <TabsTrigger value="settings">Link Download</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="blog">
+              <BlogManager topics={topics} />
+            </TabsContent>
+            <TabsContent value="topics">
+              <TopicManager />
+            </TabsContent>
+            <TabsContent value="gallery">
+              <GalleryManager />
+            </TabsContent>
+            <TabsContent value="testimonials">
+              <TestimonialManager />
+            </TabsContent>
+            <TabsContent value="settings">
+              <SettingsManager />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </AuthenticatedLayout>

@@ -63,6 +63,7 @@ class PostController extends Controller
             'is_active' => 'sometimes|boolean',
             // --- Tambahkan validasi untuk bahasa ---
             'language' => ['required', 'string', Rule::in(['en', 'de', 'ar', 'nl', 'zh', 'fr', 'ja'])],
+            'topic_id' => 'nullable|exists:topics,id',
         ]);
 
         if ($request->hasFile('imageFile')) {
@@ -94,6 +95,7 @@ class PostController extends Controller
             'is_active' => 'sometimes|boolean',
             // --- Tambahkan validasi untuk bahasa ---
             'language' => ['required', 'string', Rule::in(['en', 'de', 'ar', 'nl', 'zh', 'fr', 'ja'])],
+            'topic_id' => 'nullable|exists:topics,id',
         ]);
 
         if ($request->hasFile('imageFile')) {

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export default function PostForm({
   form,
+  topics, // <-- Prop baru untuk menerima data topik
   handleFormChange,
   handleSwitchChange,
   handleImageChange,
@@ -26,6 +27,7 @@ export default function PostForm({
 
   const languages = [
     { value: 'en', label: 'English' },
+    { value: 'id', label: 'Indonesia' },
     { value: 'de', label: 'German' },
     { value: 'ar', label: 'Arabic' },
     { value: 'nl', label: 'Dutch' },
@@ -50,7 +52,8 @@ export default function PostForm({
                 <p className="text-sm text-gray-500 leading-relaxed">Slug adalah bagian akhir dari URL. Biasanya berupa huruf kecil dengan tanda hubung (-).</p>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              {/* Grid untuk Kategori, Bahasa, Topik, dan Tanggal */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category">Kategori</Label>
                   <Input id="category" name="category" value={form.category} onChange={handleFormChange} required />
@@ -58,18 +61,36 @@ export default function PostForm({
                 <div className="space-y-2">
                   <Label htmlFor="language">Bahasa</Label>
                   <Select value={form.language} onValueChange={(value) => handleSelectChange('language', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih bahasa..." />
-                    </SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Pilih bahasa..." /></SelectTrigger>
                     <SelectContent>
                       {languages.map(lang => (
-                        <SelectItem key={lang.value} value={lang.value}>
-                          {lang.label}
-                        </SelectItem>
+                        <SelectItem key={lang.value} value={lang.value}>{lang.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* --- ✨ FITUR BARU: DROPDOWN TOPIK --- */}
+                <div className="space-y-2">
+                  <Label htmlFor="topic_id">Topik</Label>
+                  <Select
+                    name="topic_id"
+                    value={form.topic_id || ''}
+                    onValueChange={(value) => {
+                      const actualValue = value === 'none' ? '' : value;
+                      handleSelectChange('topic_id', actualValue);
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Pilih topik..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Tanpa Topik</SelectItem>
+                      {topics && topics.map(topic => (
+                        <SelectItem key={topic.id} value={topic.id.toString()}>{topic.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="date">Tanggal</Label>
                   <Input id="date" type="date" name="date" value={form.date} onChange={handleFormChange} required />
@@ -99,6 +120,7 @@ export default function PostForm({
             />
           </div>
         </CardContent>
+        {/* --- Footer yang menempel dipertahankan --- */}
         <div className="sticky bottom-0 z-10 bg-background/95 backdrop-blur-sm border-t p-4 -mx-6 -mb-6 rounded-b-xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">

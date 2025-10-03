@@ -16,9 +16,9 @@ export default function PostList({ posts, loading, handleEdit, handleDeleteClick
               <TableRow>
                 <TableHead>Status</TableHead>
                 <TableHead>Judul</TableHead>
-                {/* --- Kolom Baru --- */}
                 <TableHead>Bahasa</TableHead>
                 <TableHead>Kategori</TableHead>
+
                 <TableHead>Tanggal</TableHead>
                 <TableHead className="text-right">Aksi</TableHead>
               </TableRow>
@@ -28,9 +28,10 @@ export default function PostList({ posts, loading, handleEdit, handleDeleteClick
                 <TableRow key={post.id} className={!post.is_active ? 'bg-muted/50' : ''}>
                   <TableCell><Switch checked={post.is_active} onCheckedChange={() => handleToggleStatus(post)} /></TableCell>
                   <TableCell className="font-medium">{post.title}</TableCell>
-                  {/* --- Sel Baru --- */}
                   <TableCell>{post.language.toUpperCase()}</TableCell>
                   <TableCell>{post.category}</TableCell>
+                  {/* --- Sel Baru --- */}
+
                   <TableCell>{new Date(post.date).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => handlePreviewClick(post)}><Eye className="h-4 w-4" /></Button>

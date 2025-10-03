@@ -14,6 +14,7 @@ class Post extends Model
         'title', 'slug', 'excerpt', 'content', 'image', 'date', 'category',
         'meta_title', 'meta_description', 'is_active',
         'language', // <-- Tambahkan ini
+        'topic_id', // <-- ✅ TAMBAHKAN BARIS INI
     ];
 
     // ... sisa kode model ...
@@ -39,5 +40,10 @@ class Post extends Model
             return Storage::disk('public')->url($this->attributes['image']);
         }
         return null;
+    }
+
+    public function topic()
+    {
+        return $this->belongsTo(Topic::class);
     }
 }
